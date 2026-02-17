@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tuff UBG</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body {
+    height: 100vh;
+    background: #05070d;
+    overflow: hidden;
+    color: white;
+}
+
+/* Canvas */
+#bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* Home Container */
+.container {
+    position: relative;
+    z-index: 2;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: 0.6s ease;
+}
+
+.container.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Title */
+.title {
+    font-size: 48px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #8ef9d4;
+    text-shadow: 0 0 20px #00ffc8;
+}
+
+/* Search */
+.search-box {
+    width: 500px;
+    max-width: 90%;
+    margin-bottom: 35px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 16px;
+    backdrop-filter: blur(10px);
+    transition: 0.3s ease;
+}
+
+.search-box input:focus {
+    outline: none;
+    box-shadow: 0 0 20px #00ffc8;
+    border: 1px solid #00ffc8;
+}
+
+/* Apps */
+.apps {
+    display: grid;
+    grid-template-columns: repeat(4, 110px);
+    gap: 20px;
+}
+
+.app {
+    height: 100px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: 0.3s ease;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.app:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 20px #00ffc8;
+    background: rgba(0,255,200,0.15);
+}
+
+/* Game Viewer */
+.viewer {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: none;
+    flex-direction: column;
+    z-index: 5;
+}
+
+.viewer.active {
+    display: flex;
+}
+
+.topbar {
+    height: 50px;
+    background: #0b0f16;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.topbar button {
+    background: rgba(0,255,200,0.15);
+    border: none;
+    color: #00ffc8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.topbar button:hover {
+    box-shadow: 0 0 10px #00ffc8;
+}
+
+.viewer iframe {
+    flex: 1;
+    border: none;
+}
+
+/* Fade */
+.container {
+    animation: fadeIn 1.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- HOME PAGE -->
+<div class="container" id="home">
+
+    <div class="title">Tuff UBG</div>
+
+    <div class="search-box">
+        <input type="text" placeholder="Search disabled in game mode">
+    </div>
+
+    <div class="apps">
+        <div class="app" onclick="openGame('vicecity')">Vice City</div>
+        <div class="app" onclick="openGame('baldi')">Baldi</div>
+        <div class="app" onclick="openGame('slimerancher')">Slime Rancher</div>
+        <div class="app" onclick="openGame('granny1')">Granny 1</div>
+        <div class="app" onclick="openGame('gorillatag')">Gorilla Tag</div>
+    </div>
+
+</div>
+
+<!-- GAME VIEWER -->
+<div class="viewer" id="viewer">
+    <div class="topbar">
+        <span id="gameTitle">Game</span>
+        <button onclick="closeGame()">Exit</button>
+    </div>
+    <iframe id="gameFrame" allowfullscreen></iframe>
+</div>
+
+<script>
+const games = {
+
+vicecity: `
+<html><body style="margin:0">
+<iframe src="https://truffled.lol/games/vicecity/index.html"
+style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none"
+allowfullscreen></iframe>
+</body></html>
+`,
+
+baldi: `
+<html><body style="margin:0">
+<iframe src="https://truffled.lol/games/baldis-basics/index.html"
+style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none"
+allowfullscreen></iframe>
+</body></html>
+`,
+
+slimerancher: `
+<html><body style="margin:0">
+<iframe src="https://truffled.lol/games/slimerancher/index.html"
+style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none"
+allowfullscreen></iframe>
+</body></html>
+`,
+
+granny1: `
+<html><body style="margin:0">
+<iframe src="https://truffled.lol/gamefile/Granny.html"
+style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none"
+allowfullscreen></iframe>
+</body></html>
+`,
+
+gorillatag: `
+<html><body style="margin:0">
+<iframe src="https://truffled.lol/games/gtag/index.html"
+style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none"
+allowfullscreen></iframe>
+</body></html>
+`
+};
+
+function openGame(name){
+    document.getElementById("home").classList.add("hidden");
+    document.getElementById("viewer").classList.add("active");
+    document.getElementById("gameTitle").innerText = name;
+    document.getElementById("gameFrame").srcdoc = games[name];
+}
+
+function closeGame(){
+    document.getElementById("viewer").classList.remove("active");
+    document.getElementById("home").classList.remove("hidden");
+    document.getElementById("gameFrame").srcdoc = "";
+}
+
+/* Background Particles */
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+for (let i = 0; i < 100; i++) {
+    particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5
+    });
+}
+
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#00ffc8";
+    particles.forEach(p=>{
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+        p.x+=p.dx;
+        p.y+=p.dy;
+        if(p.x<0||p.x>canvas.width)p.dx*=-1;
+        if(p.y<0||p.y>canvas.height)p.dy*=-1;
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
